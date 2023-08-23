@@ -41,7 +41,7 @@ export const searchPeriod = async (req: Request, res: Response) => {
 export const searchInitial = async (req: Request, res: Response) => {
     try{
         const currentDate = new Date();
-        await Extract.query(`select * from extract where month(date) = ${currentDate.getMonth()+1}`)
+        await Extract.query(`select * from extract where month(date) = ${currentDate.getMonth()+1} order by date desc`)
         .then((data)=>{
             res.json(data);
         })
@@ -68,6 +68,30 @@ export const searchPreviousMonth = async (req: Request, res: Response) => {
         await Extract.query(`select * from extract where month(date) = ${parseInt(req.body.month)-1}`)
         .then((data)=>{
             res.json(data);
+        })
+
+    }catch(error){
+        res.status(500).json({error});
+    }
+}
+
+export const expenses = async (req: Request, res: Response) => {
+    try{
+        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)+1} and category = "Débito"`)
+        .then((data)=>{
+            res.json(data[0]);
+        })
+
+    }catch(error){
+        res.status(500).json({error});
+    }
+}
+
+export const receipt = async (req: Request, res: Response) => {
+    try{
+        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)+1} and category = "Crédito"`)
+        .then((data)=>{
+            res.json(data[0]);
         })
 
     }catch(error){
