@@ -53,7 +53,7 @@ export const searchInitial = async (req: Request, res: Response) => {
 
 export const searchNextMonth = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select * from extract where month(date) = ${parseInt(req.body.month)+1}`)
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)+1}`)
         .then((data)=>{
             res.json(data);
         })
@@ -65,7 +65,7 @@ export const searchNextMonth = async (req: Request, res: Response) => {
 
 export const searchPreviousMonth = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select * from extract where month(date) = ${parseInt(req.body.month)-1}`)
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)-1}`)
         .then((data)=>{
             res.json(data);
         })
@@ -77,9 +77,12 @@ export const searchPreviousMonth = async (req: Request, res: Response) => {
 
 export const expenses = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)+1} and category = "Débito"`)
+        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)} and category = "Débito"`)
         .then((data)=>{
-            res.json(data[0]);
+            if(data[0].total === null){
+                data[0].total = 0;
+            }
+            res.json(data[0].total);
         })
 
     }catch(error){
@@ -89,9 +92,12 @@ export const expenses = async (req: Request, res: Response) => {
 
 export const receipt = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)+1} and category = "Crédito"`)
+        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)} and category = "Crédito"`)
         .then((data)=>{
-            res.json(data[0]);
+            if(data[0].total === null){
+                data[0].total = 0;
+            }
+            res.json(data[0].total);
         })
 
     }catch(error){
