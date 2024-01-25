@@ -53,7 +53,7 @@ export const searchInitial = async (req: Request, res: Response) => {
 
 export const searchNextMonth = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)+1}`)
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)+1} and year(date) = ${new Date().getFullYear()}`)
         .then((data)=>{
             res.json(data);
         })
@@ -65,7 +65,7 @@ export const searchNextMonth = async (req: Request, res: Response) => {
 
 export const searchPreviousMonth = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)-1}`)
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)-1} and year(date) = ${new Date().getFullYear()}`)
         .then((data)=>{
             res.json(data);
         })
@@ -77,7 +77,7 @@ export const searchPreviousMonth = async (req: Request, res: Response) => {
 
 export const expenses = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)} and category = "Débito"`)
+        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)} and year(date) = ${new Date().getFullYear()} and category = "Débito"`)
         .then((data)=>{
             if(data[0].total === null){
                 data[0].total = 0;
@@ -92,7 +92,7 @@ export const expenses = async (req: Request, res: Response) => {
 
 export const receipt = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)} and category = "Crédito"`)
+        await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)} and year(date) = ${new Date().getFullYear()} and category = "Crédito"`)
         .then((data)=>{
             if(data[0].total === null){
                 data[0].total = 0;
@@ -100,6 +100,15 @@ export const receipt = async (req: Request, res: Response) => {
             res.json(data[0].total);
         })
 
+    }catch(error){
+        res.status(500).json({error});
+    }
+}
+
+export const deleteExtract = async (req: Request, res: Response) => {
+    try{
+        await Extract.delete(parseInt(req.params.id));
+        res.status(200).json({id:req.params.id})
     }catch(error){
         res.status(500).json({error});
     }
