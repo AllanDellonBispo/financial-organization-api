@@ -27,7 +27,39 @@ export const searchPeriod = async (req: Request, res: Response) => {
     try{
         await Extract.find({
             where: {
-                date: Between(req.body.dateInitial, req.body.dateFinal)
+                date: Between(new Date(req.params.dateInitial), new Date(req.params.dateFinal))
+            }
+        }).then((data)=>{
+            res.json(data);
+        })
+
+    }catch(error){
+        res.status(500).json({error});
+    }
+}
+
+export const searchPeriodReceipt = async (req: Request, res: Response) => {
+    try{
+        await Extract.find({
+            where: {
+                date: Between(new Date(req.params.dateInitial), new Date(req.params.dateFinal)),
+                category: 'Crédito'
+            }
+        }).then((data)=>{
+            res.json(data);
+        })
+
+    }catch(error){
+        res.status(500).json({error});
+    }
+}
+
+export const searchPeriodExpenses = async (req: Request, res: Response) => {
+    try{
+        await Extract.find({
+            where: {
+                date: Between(new Date(req.params.dateInitial), new Date(req.params.dateFinal)),
+                category: 'Débito'
             }
         }).then((data)=>{
             res.json(data);
