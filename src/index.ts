@@ -1,6 +1,6 @@
 import { AppDataSource } from "./data-source"
 import user from './routes/User/userRoutes';
-import express, { Request, Response } from 'express';
+import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import extract from './routes/Extract/extractRoutes';
@@ -39,6 +39,8 @@ AppDataSource.initialize().then(async () => {
 
     //Define a rota inicial do Sistema assim com a(s) instâncias de rotas a serem usadas
     server.use('/financial-organizational', [user, extract]);
+
+    // server.use(express.static(path.join(__dirname, '../public')));
 
     //Mostar em que porta o servidor estará funcioanado
     server.listen(process.env.PORT);

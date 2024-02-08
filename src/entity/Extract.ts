@@ -18,4 +18,7 @@ export class Extract extends BaseEntity{
     @Column('float')
     value: number
 
+    @Column({type:'text'})
+    proofTransaction: string
+
 }

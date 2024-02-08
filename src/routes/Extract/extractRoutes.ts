@@ -1,5 +1,19 @@
+import multer from "multer";
 import * as extractController from "../../controller/ExtractController";
 import express from "express";
+
+const storageConfig = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, './tmp');
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname)
+    }
+});
+
+const upload = multer({
+    storage: storageConfig
+});
 
 const router = express.Router();
 
@@ -12,7 +26,12 @@ router.get('/extract/search/next/:month/:year', extractController.searchNextMont
 router.get('/extract/search/previous/:month/:year', extractController.searchPreviousMonth);
 router.get('/extract/search/expenses/:month', extractController.expenses);
 router.get('/extract/search/receipt/:month', extractController.receipt);
-router.post('/extract', extractController.createExtract);
+router.get('/extract/fileDownload/:id', extractController.fileDownload);
+// router.post('/extract', extractController.createExtract)\;
 router.delete('/extract/delete/:id', extractController.deleteExtract);
+
+router.post('/extract', upload.single('proofTransaction'), extractController.createExtract);
+router.put('/extract', upload.single('proofTransactionUpdate'), extractController.updateExtract);
+
 
 export default router;

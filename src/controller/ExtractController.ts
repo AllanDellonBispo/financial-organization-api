@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Extract } from "../entity/Extract";
-import { Between } from "typeorm";
+import path from "path";
+
 
 export const all = async (req: Request, res: Response) => {
     await Extract.find().then((data)=>{
@@ -9,14 +10,39 @@ export const all = async (req: Request, res: Response) => {
 }
 
 export const createExtract = async (req: Request, res: Response) => {
+    // console.log("Foii")
+    // console.log(req.file)
+    // console.log(req.body)
     try{
         const extract = new Extract();
-        // extract.date = new Date();
         extract.date = req.body.date;
         extract.category = req.body.category;
         extract.title = req.body.title;
         extract.value = req.body.value;
+        extract.proofTransaction = req.file.originalname;
         await Extract.save(extract);
+        res.status(201).json({extract});
+    }catch(error){
+        res.status(400).json({error});
+    }
+}
+
+export const updateExtract = async (req: Request, res: Response) => {
+    try{
+        await Extract
+        .createQueryBuilder()
+        .update(req.body)
+        .set({
+            date: req.body.dateUpdate,
+            category: req.body.categoryUpdate,
+            title: req.body.titleUpdate,
+            value: req.body.valueUpdate,
+            proofTransaction: req.file.originalname,
+        })
+        .where(`id = :id`, {id: parseInt(req.body.id)})
+        .execute();
+
+        const extract = await Extract.findBy({id:req.body.id});
         res.status(201).json({extract});
     }catch(error){
         res.status(400).json({error});
@@ -25,11 +51,10 @@ export const createExtract = async (req: Request, res: Response) => {
 
 export const searchPeriod = async (req: Request, res: Response) => {
     try{
-        await Extract.find({
-            where: {
-                date: Between(new Date(req.params.dateInitial), new Date(req.params.dateFinal))
-            }
-        }).then((data)=>{
+        await Extract.query(`select * from extract where
+                             date >= "${req.params.dateInitial}" and
+                             date <= "${req.params.dateFinal}" order by date desc`)
+        .then((data)=>{
             res.json(data);
         })
 
@@ -40,12 +65,11 @@ export const searchPeriod = async (req: Request, res: Response) => {
 
 export const searchPeriodReceipt = async (req: Request, res: Response) => {
     try{
-        await Extract.find({
-            where: {
-                date: Between(new Date(req.params.dateInitial), new Date(req.params.dateFinal)),
-                category: 'Crédito'
-            }
-        }).then((data)=>{
+        await Extract.query(`select * from extract where
+                             date >= "${req.params.dateInitial}" and
+                             date <= "${req.params.dateFinal}" and
+                             category = "Crédito" order by date desc`)
+        .then((data)=>{
             res.json(data);
         })
 
@@ -56,12 +80,11 @@ export const searchPeriodReceipt = async (req: Request, res: Response) => {
 
 export const searchPeriodExpenses = async (req: Request, res: Response) => {
     try{
-        await Extract.find({
-            where: {
-                date: Between(new Date(req.params.dateInitial), new Date(req.params.dateFinal)),
-                category: 'Débito'
-            }
-        }).then((data)=>{
+        await Extract.query(`select * from extract where
+                             date >= "${req.params.dateInitial}" and
+                             date <= "${req.params.dateFinal}" and
+                             category = "Débito" order by date desc`)
+        .then((data)=>{
             res.json(data);
         })
 
@@ -146,3 +169,20 @@ export const deleteExtract = async (req: Request, res: Response) => {
     }
 }
 
+export const fileDownload = async (req: Request, res: Response) => {
+        const extract = await Extract.findOneBy({
+            id: parseInt(req.params.id)
+        });
+        const filePath = path.join(__dirname, '../../tmp').replace(/[\\"]/g,'/');
+        res.download(filePath+`/${extract.proofTransaction}`,`/${extract.proofTransaction}`, (err) => {
+            if (err) {
+                console.log(err)
+                // Handle error, but keep in mind the response may be partially-sent
+                // so check res.headersSent
+            } else {
+              // decrement a download credit, etc.
+            }
+          }
+           );
+        
+    }
