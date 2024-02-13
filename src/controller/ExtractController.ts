@@ -10,9 +10,6 @@ export const all = async (req: Request, res: Response) => {
 }
 
 export const createExtract = async (req: Request, res: Response) => {
-    // console.log("Foii")
-    // console.log(req.file)
-    // console.log(req.body)
     try{
         const extract = new Extract();
         extract.date = req.body.date;
@@ -29,22 +26,24 @@ export const createExtract = async (req: Request, res: Response) => {
 
 export const updateExtract = async (req: Request, res: Response) => {
     try{
+        const extract = await Extract.findOneBy({id:req.body.id});
         await Extract
         .createQueryBuilder()
-        .update(req.body)
+        .update(extract)
         .set({
-            date: req.body.dateUpdate,
-            category: req.body.categoryUpdate,
-            title: req.body.titleUpdate,
-            value: req.body.valueUpdate,
-            proofTransaction: req.file.originalname,
+            date: req.body.dateUpdate ? req.body.dateUpdate : extract.date,
+            category: req.body.categoryUpdate ? req.body.categoryUpdate : extract.category,
+            title: req.body.titleUpdate ? req.body.titleUpdate : extract.title,
+            value: req.body.valueUpdate ? req.body.valueUpdate : extract.value,
+            proofTransaction: req.file ? req.file.originalname : extract.proofTransaction,
         })
-        .where(`id = :id`, {id: parseInt(req.body.id)})
+        .where(`id = :id`, {id: req.body.id})
         .execute();
 
-        const extract = await Extract.findBy({id:req.body.id});
-        res.status(201).json({extract});
+        const extract2 = await Extract.findOneBy({id:req.body.id});
+        res.status(201).json({extract2});
     }catch(error){
+        console.log(error)
         res.status(400).json({error});
     }
 }
@@ -108,7 +107,7 @@ export const searchInitial = async (req: Request, res: Response) => {
 
 export const searchNextMonth = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)+1} and year(date) = ${new Date().getFullYear()}`)
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)+1} and year(date) = ${new Date().getFullYear()} order by date desc`)
         .then((data)=>{
             res.json(data);
         })
@@ -120,7 +119,7 @@ export const searchNextMonth = async (req: Request, res: Response) => {
 
 export const searchPreviousMonth = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)-1} and year(date) = ${new Date().getFullYear()}`)
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)-1} and year(date) = ${new Date().getFullYear()} order by date desc`)
         .then((data)=>{
             res.json(data);
         })
