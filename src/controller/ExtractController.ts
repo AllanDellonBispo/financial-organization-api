@@ -43,7 +43,6 @@ export const updateExtract = async (req: Request, res: Response) => {
         const extract2 = await Extract.findOneBy({id:req.body.id});
         res.status(201).json({extract2});
     }catch(error){
-        console.log(error)
         res.status(400).json({error});
     }
 }

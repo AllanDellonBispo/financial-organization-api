@@ -1,5 +1,6 @@
 import multer from "multer";
 import * as extractController from "../../controller/ExtractController";
+import * as paymentController from "../../controller/PaymentController";
 import express from "express";
 
 const storageConfig = multer.diskStorage({
@@ -32,6 +33,12 @@ router.delete('/extract/delete/:id', extractController.deleteExtract);
 
 router.post('/extract', upload.single('proofTransaction'), extractController.createExtract);
 router.put('/extract', upload.single('proofTransactionUpdate'), extractController.updateExtract);
+
+
+router.get('/payment', paymentController.all);
+router.post('/payment', paymentController.create);
+router.put('/payment', paymentController.update);
+router.delete('/payment', paymentController.deletePayment);
 
 
 export default router;
