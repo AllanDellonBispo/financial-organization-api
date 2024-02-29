@@ -10,12 +10,9 @@ export const all = async (req: Request, res: Response) => {
 }
 
 export const paymentsMadeMonth = async (req: Request, res: Response) => {
-    //precisa verificar se os meses terminam em 31, 20 ou 28 dias
-    // const meses31 = [1,3,5,7,8,10,12];
-    console.log(req.params.month);
     await Extract.query(`select title from extract where 
     date >= "${new Date().getFullYear()}-${req.params.month}-01" and
-    date <= "${new Date().getFullYear()}-${req.params.month}-${Number(req.params.month) === 2 ? "28": Number(req.params.month) === 1 || 3 || 5 || 7 || 8 || 10 || 12 ? "31" : "30"}}"`)
+    date <= "${new Date().getFullYear()}-${req.params.month}-${Number(req.params.month) === 2 ? "29": Number(req.params.month) === 1 || 3 || 5 || 7 || 8 || 10 || 12 ? "31" : "30"}}"`)
     .then((data)=>{
         res.json(data);
     }).catch((error:Error)=>{
@@ -105,6 +102,29 @@ export const searchPeriodExpenses = async (req: Request, res: Response) => {
     }
 }
 
+export const searchPeriodGraphic = async (req: Request, res: Response) => {
+    try{
+        await Extract.query(`SELECT
+        CONCAT(MONTHNAME(STR_TO_DATE(date, '%Y-%m-%d')), ' ', YEAR(STR_TO_DATE(date, '%Y-%m-%d'))) AS mes_ano,
+        SUM(CASE WHEN category <> 'Débito' THEN value ELSE 0 END) AS total,
+        SUM(CASE WHEN category = 'Débito' THEN value ELSE 0 END) AS total_debito
+    FROM
+        extract
+    WHERE
+        date BETWEEN '${req.params.dateInitial}' AND '${req.params.dateFinal}'
+    GROUP BY
+        mes_ano
+    ORDER BY
+    MIN(STR_TO_DATE(date, '%Y-%m-%d'))`)
+        .then((data)=>{
+            res.json(data);
+        })
+
+    }catch(error){
+        res.status(500).json({error});
+    }
+}
+
 export const searchInitial = async (req: Request, res: Response) => {
     try{
         const currentDate = new Date();
@@ -165,10 +185,8 @@ export const expensesPartial = async (req: Request, res: Response) => {
         const collaboratorsTotalResult = await expenseCollaborators(Number(req.params.month));
         const collaborators = collaboratorsTotalResult[0].total || 0;
 
-            const finalTotal = collaborators === 0 ? 0 : (extractTotal - collaborators);
-            console.log(extractTotal);
-            console.log(collaborators);
-            console.log(finalTotal);
+            // const finalTotal = collaborators === 0 ? 0 : (extractTotal - collaborators);
+            const finalTotal = (extractTotal - collaborators);
             res.json(finalTotal);
     }catch(error){
         res.status(500).json({error: error.message});
@@ -180,7 +198,7 @@ const expenseCollaborators = async(mes: number): Promise<number> => {
         const total: number = await Extract.query(`SELECT SUM(e.value) AS total
         FROM extract e
         JOIN payment p ON e.title = p.name
-        WHERE e.category = 'debito' AND MONTH(e.date) = ${mes} and year(date) = ${new Date().getFullYear()};`)
+        WHERE e.category = 'debito' AND MONTH(e.date) = ${mes} and year(date) = ${new Date().getFullYear()} and p.category = 'Porcentagem';`)
         return total;
     }catch(error){
         console.error('Erro ao obter despesas de colaboradores:', error);

@@ -21,6 +21,7 @@ const router = express.Router();
 router.get('/extract', extractController.all);
 router.get('/extract/payments/month/:month', extractController.paymentsMadeMonth);
 router.get('/extract/filter/:dateInitial/:dateFinal', extractController.searchPeriod);
+router.get('/extract/filter/graphic/:dateInitial/:dateFinal', extractController.searchPeriodGraphic);
 router.get('/extract/filter/receipt/:dateInitial/:dateFinal', extractController.searchPeriodReceipt);
 router.get('/extract/filter/expenses/:dateInitial/:dateFinal', extractController.searchPeriodExpenses);
 router.get('/extract/search/initial', extractController.searchInitial);
