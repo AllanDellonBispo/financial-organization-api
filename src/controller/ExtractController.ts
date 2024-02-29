@@ -9,6 +9,20 @@ export const all = async (req: Request, res: Response) => {
     })
 }
 
+export const paymentsMadeMonth = async (req: Request, res: Response) => {
+    //precisa verificar se os meses terminam em 31, 20 ou 28 dias
+    // const meses31 = [1,3,5,7,8,10,12];
+    console.log(req.params.month);
+    await Extract.query(`select title from extract where 
+    date >= "${new Date().getFullYear()}-${req.params.month}-01" and
+    date <= "${new Date().getFullYear()}-${req.params.month}-${Number(req.params.month) === 2 ? "28": Number(req.params.month) === 1 || 3 || 5 || 7 || 8 || 10 || 12 ? "31" : "30"}}"`)
+    .then((data)=>{
+        res.json(data);
+    }).catch((error:Error)=>{
+        res.json(error);
+    })
+}
+
 export const createExtract = async (req: Request, res: Response) => {
     try{
         const extract = new Extract();
@@ -31,17 +45,17 @@ export const updateExtract = async (req: Request, res: Response) => {
         .createQueryBuilder()
         .update(extract)
         .set({
-            date: req.body.dateUpdate ? req.body.dateUpdate : extract.date,
-            category: req.body.categoryUpdate ? req.body.categoryUpdate : extract.category,
-            title: req.body.titleUpdate ? req.body.titleUpdate : extract.title,
-            value: req.body.valueUpdate ? req.body.valueUpdate : extract.value,
+            date: req.body.date ?? extract.date,
+            category: req.body.category ?? extract.category,
+            title: req.body.title ?? extract.title,
+            value: req.body.value ?? extract.value,
             proofTransaction: req.file ? req.file.originalname : extract.proofTransaction,
         })
         .where(`id = :id`, {id: req.body.id})
         .execute();
 
-        const extract2 = await Extract.findOneBy({id:req.body.id});
-        res.status(201).json({extract2});
+        const extractUpdated = await Extract.findOneBy({id:req.body.id});
+        res.status(201).json({extractUpdated});
     }catch(error){
         res.status(400).json({error});
     }
@@ -140,6 +154,37 @@ export const expenses = async (req: Request, res: Response) => {
 
     }catch(error){
         res.status(500).json({error});
+    }
+}
+
+export const expensesPartial = async (req: Request, res: Response) => {
+    try{
+        const extractTotalResult = await Extract.query(`select sum(value) as total from extract where month(date) = ${parseInt(req.params.month)} and year(date) = ${new Date().getFullYear()} and category = "Débito"`);
+        const extractTotal = extractTotalResult[0]?.total || 0;
+        
+        const collaboratorsTotalResult = await expenseCollaborators(Number(req.params.month));
+        const collaborators = collaboratorsTotalResult[0].total || 0;
+
+            const finalTotal = collaborators === 0 ? 0 : (extractTotal - collaborators);
+            console.log(extractTotal);
+            console.log(collaborators);
+            console.log(finalTotal);
+            res.json(finalTotal);
+    }catch(error){
+        res.status(500).json({error: error.message});
+    }
+}
+
+const expenseCollaborators = async(mes: number): Promise<number> => {
+    try{
+        const total: number = await Extract.query(`SELECT SUM(e.value) AS total
+        FROM extract e
+        JOIN payment p ON e.title = p.name
+        WHERE e.category = 'debito' AND MONTH(e.date) = ${mes} and year(date) = ${new Date().getFullYear()};`)
+        return total;
+    }catch(error){
+        console.error('Erro ao obter despesas de colaboradores:', error);
+        throw error;
     }
 }
 
