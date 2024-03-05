@@ -2,9 +2,13 @@ import { Request, Response } from "express";
 import { Extract } from "../entity/Extract";
 import path from "path";
 
-
+//Retornar os ultimos 5 resultados
+//Veirifcar se as despesas e receitas dependem da função searchInitial para serem calculadas
 export const all = async (req: Request, res: Response) => {
-    await Extract.find().then((data)=>{
+    await Extract.find({
+        skip:0,
+        take:5
+    }).then((data)=>{
         res.json(data);
     })
 }
@@ -128,7 +132,19 @@ export const searchPeriodGraphic = async (req: Request, res: Response) => {
 export const searchInitial = async (req: Request, res: Response) => {
     try{
         const currentDate = new Date();
-        await Extract.query(`select * from extract where month(date) = ${currentDate.getMonth()+1} order by date desc`)
+        await Extract.query(`select * from extract where month(date) = ${currentDate.getMonth()+1} order by date desc limit 0, 5`)
+        .then((data)=>{
+            res.json(data);
+        })
+
+    }catch(error){
+        res.status(500).json({error});
+    }
+}
+
+export const changePage = async (req: Request, res: Response) => {
+    try{
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)} and year(date) = ${new Date().getFullYear()} order by date desc limit ${req.params.page}, 5`)
         .then((data)=>{
             res.json(data);
         })
@@ -140,7 +156,7 @@ export const searchInitial = async (req: Request, res: Response) => {
 
 export const searchNextMonth = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)+1} and year(date) = ${new Date().getFullYear()} order by date desc`)
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)} and year(date) = ${new Date().getFullYear()} order by date desc limit 0, 5`)
         .then((data)=>{
             res.json(data);
         })
@@ -152,7 +168,7 @@ export const searchNextMonth = async (req: Request, res: Response) => {
 
 export const searchPreviousMonth = async (req: Request, res: Response) => {
     try{
-        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)-1} and year(date) = ${new Date().getFullYear()} order by date desc`)
+        await Extract.query(`select * from extract where month(date) = ${parseInt(req.params.month)} and year(date) = ${new Date().getFullYear()} order by date desc limit 0, 5`)
         .then((data)=>{
             res.json(data);
         })

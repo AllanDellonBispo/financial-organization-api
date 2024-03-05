@@ -25,6 +25,7 @@ router.get('/extract/filter/graphic/:dateInitial/:dateFinal', extractController.
 router.get('/extract/filter/receipt/:dateInitial/:dateFinal', extractController.searchPeriodReceipt);
 router.get('/extract/filter/expenses/:dateInitial/:dateFinal', extractController.searchPeriodExpenses);
 router.get('/extract/search/initial', extractController.searchInitial);
+router.get('/extract/search/page/:month/:page', extractController.changePage);
 router.get('/extract/search/next/:month/:year', extractController.searchNextMonth);
 router.get('/extract/search/previous/:month/:year', extractController.searchPreviousMonth);
 router.get('/extract/search/expenses/partial/:month', extractController.expensesPartial);
