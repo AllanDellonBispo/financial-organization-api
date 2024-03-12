@@ -1,7 +1,9 @@
 import multer from "multer";
 import * as extractController from "../../controller/ExtractController";
 import * as paymentController from "../../controller/PaymentController";
+import * as userController from "../../controller/UserController";
 import express from "express";
+import { Auth } from "../../middlewares/auth";
 
 const storageConfig = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -18,7 +20,7 @@ const upload = multer({
 
 const router = express.Router();
 
-router.get('/extract', extractController.all);
+router.get('/extract', Auth.private ,extractController.all);
 router.get('/extract/payments/month/:month', extractController.paymentsMadeMonth);
 router.get('/extract/filter/:dateInitial/:dateFinal', extractController.searchPeriod);
 router.get('/extract/filter/graphic/:dateInitial/:dateFinal', extractController.searchPeriodGraphic);
@@ -44,6 +46,8 @@ router.post('/payment', paymentController.create);
 router.put('/payment', paymentController.update);
 router.put('/payment/:id', paymentController.updateStatus);
 router.delete('/payment', paymentController.deletePayment);
+
+router.post('/login', userController.login);
 
 
 export default router;

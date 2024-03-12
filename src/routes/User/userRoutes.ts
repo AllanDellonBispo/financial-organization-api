@@ -10,6 +10,7 @@ const router = express.Router();
 // });
 
 router.get('/teste', userController.all);
-router.post('/createTeste', userController.create);
+// router.post('/createTeste', userController.create);
+router.post('/login', userController.login);
 
 export default router;
