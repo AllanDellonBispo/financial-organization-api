@@ -45,7 +45,7 @@ router.get('/payment', paymentController.all);
 router.post('/payment', paymentController.create);
 router.put('/payment', paymentController.update);
 router.put('/payment/:id', paymentController.updateStatus);
-router.delete('/payment', paymentController.deletePayment);
+router.delete('/payment/:id', paymentController.deletePayment);
 
 router.post('/login', userController.login);
 

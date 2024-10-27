@@ -13,19 +13,6 @@ export const all = async (req: Request, res: Response) => {
     })
 }
 
-// export const create = async (req: Request, res: Response) => {
-//     try{
-//         const user = new User();
-//         user.firstName = req.body.firstName;
-//         user.lastName = req.body.lastName;
-//         user.age = req.body.age;
-//         await user.save();
-//         res.status(201).json({user});
-//     }catch(error){
-//         res.status(400).json({error});
-//     }
-// }
-
 export const login = async (req: Request, res: Response) => {
     if(req.body.email && req.body.password){
         let email: string = req.body.email;
