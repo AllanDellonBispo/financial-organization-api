@@ -24,6 +24,7 @@ router.get('/extract', Auth.private ,extractController.all);
 router.get('/extract/payments/month/:month', extractController.paymentsMadeMonth);
 router.get('/extract/filter/:dateInitial/:dateFinal', extractController.searchPeriod);
 router.get('/extract/report/CSV/:dateInitial/:dateFinal', extractController.ReportSearchPeriodCSV);
+router.get('/extract/report/PDF/:dateInitial/:dateFinal', extractController.ReportSearchPeriodPDF);
 router.get('/extract/filter/graphic/:dateInitial/:dateFinal', extractController.searchPeriodGraphic);
 router.get('/extract/filter/receipt/:dateInitial/:dateFinal', extractController.searchPeriodReceipt);
 router.get('/extract/filter/expenses/:dateInitial/:dateFinal', extractController.searchPeriodExpenses);

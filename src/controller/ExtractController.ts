@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Extract } from "../entity/Extract";
 import path from "path";
+import PDFDocument from "pdfkit";
 
 //Retornar os ultimos 5 resultados
 //Veirifcar se as despesas e receitas dependem da função searchInitial para serem calculadas
@@ -100,7 +101,52 @@ export const ReportSearchPeriodCSV = async (req: Request, res: Response) => {
     
 
 }catch(error){
-    res.status(500).json({error});
+    console.error("Erro ao gerar relatório PDF:", error);
+    res.status(500).json({ message: "Erro ao gerar relatório PDF" });
+}
+}
+
+export const ReportSearchPeriodPDF = async (req: Request, res: Response) => {
+    try{
+         // Realiza a consulta no banco de dados com as datas fornecidas
+         const testes: Extract[] = await Extract.query(`SELECT * FROM extract WHERE date >= "${req.params.dateInitial}" AND date <= "${req.params.dateFinal}" ORDER BY date DESC`);
+
+         // Cria um novo documento PDF
+         const doc = new PDFDocument();
+        
+         // Define cabeçalhos para o navegador reconhecer como download
+         res.setHeader('Content-Type', 'application/pdf');
+         res.setHeader('Content-Disposition', 'attachment; filename="relatorio-extract.pdf"');
+ 
+         // Define o fluxo de dados do PDF para a resposta HTTP
+         doc.pipe(res);
+ 
+         const larguraColuna1 = 150; // Largura da coluna da categoria
+         const larguraColuna2 = 150; // Largura da coluna do título
+         const larguraColuna3 = 150; // Largura da coluna do valor
+         const larguraColuna4 = 150; // Largura da coluna da data
+
+        // Cabeçalhos
+        doc.fontSize(12).text("Categoria", { continued: true, width: larguraColuna1 }).text("Título", { continued: true, width: larguraColuna2 }).text("Valor", { continued: true, width: larguraColuna3 }).text("Data", { width: larguraColuna4 });
+        doc.moveDown();
+ 
+         testes.forEach((item) => {
+            const categoria = item.category.padEnd(larguraColuna1 / 7, ' '); // Ajuste para o tamanho da coluna
+            const titulo = item.title.padEnd(larguraColuna2 / 7, ' '); // Ajuste para o tamanho da coluna
+            const valor = item.value.toString().padEnd(larguraColuna3 / 7, ' '); // Ajuste para o tamanho da coluna
+            const data = item.date.toLocaleDateString('pt-BR').padEnd(larguraColuna4 / 7, ' '); // Ajuste para o tamanho da coluna
+            
+            doc.text(`${categoria}${titulo}${valor}${data}`);
+            doc.moveDown();
+        });
+ 
+         // Finaliza a criação do PDF
+         doc.end();
+    
+
+}catch(error){
+    console.error("Erro ao gerar relatório PDF:", error);
+    res.status(500).json({ message: "Erro ao gerar relatório PDF" });
 }
 }
 
