@@ -63,17 +63,45 @@ export const updateExtract = async (req: Request, res: Response) => {
 }
 
 export const searchPeriod = async (req: Request, res: Response) => {
-    try{
-        await Extract.query(`select * from extract where
-                             date >= "${req.params.dateInitial}" and
-                             date <= "${req.params.dateFinal}" order by date desc`)
-        .then((data)=>{
-            res.json(data);
-        })
-
+        try{
+            await Extract.query(`select * from extract where
+                                date >= "${req.params.dateInitial}" and
+                                date <= "${req.params.dateFinal}" order by date desc`)
+            .then((data)=>{
+                res.json(data);
+            })
+        
     }catch(error){
         res.status(500).json({error});
     }
+}
+
+export const ReportSearchPeriodCSV = async (req: Request, res: Response) => {
+    try{
+         // Realiza a consulta no banco de dados com as datas fornecidas
+         const testes: Extract[] = await Extract.query(`SELECT * FROM extract WHERE date >= "${req.params.dateInitial}" AND date <= "${req.params.dateFinal}" ORDER BY date DESC`);
+
+         // Função para gerar o conteúdo CSV
+         const generateCSVReport = (data: Extract[]): string => {
+             const headers = "Categoria,Titulo,Valor,Data\n";
+             const rows = data.map(item => `${item.category},${item.title},${item.value},${item.date.toLocaleDateString('pt-BR')}`).join("\n");
+             return headers + rows;
+         };
+ 
+         // Gera o CSV a partir dos dados da consulta
+         const csvContent = generateCSVReport(testes);
+ 
+         // Define cabeçalhos para o download do arquivo
+         res.header('Content-Type', 'text/csv');
+         res.header('Content-Disposition', 'attachment; filename="relatorio-extract.csv"');
+         
+         // Envia o conteúdo CSV como resposta
+         res.send(csvContent);
+    
+
+}catch(error){
+    res.status(500).json({error});
+}
 }
 
 export const searchPeriodReceipt = async (req: Request, res: Response) => {
